@@ -10,6 +10,7 @@ import flask
 from flask import Flask, request, jsonify, render_template
 
 from .config import TEMPLATES, TEMPLATE_PADRAO
+from .crm_integration import CRMIntegracao
 from .reader import ler_clientes, validar_clientes
 from .scanner import capturar_regiao, ocr
 from .parser import parsear_texto
@@ -163,6 +164,8 @@ def iniciar_envio():
     _state["send_running"] = True
     _state["send_progress"] = {"total": len(indices), "current": 0, "status": "iniciando", "done": False}
 
+    crm = CRMIntegracao.from_config()
+
     def enviar():
         sender = _state["sender"]
         for pos, idx in enumerate(indices, start=1):
@@ -182,9 +185,13 @@ def iniciar_envio():
                 status = "ok" if ok else "erro"
                 _state["send_progress"]["status"] = f"{'✅' if ok else '❌'} {cliente['nome']}"
                 logger.info(f"[{pos}/{len(indices)}] {status.upper()} - {cliente['nome']}")
+
+                crm.registrar_envio(cliente, status, msg)
             except Exception as e:
                 _state["send_progress"]["status"] = f"❌ {cliente['nome']} - {e}"
                 logger.error(f"[{pos}/{len(indices)}] ERRO - {cliente['nome']}: {e}")
+
+                crm.registrar_envio(cliente, "erro", msg)
 
             if pos < len(indices):
                 time.sleep(45)

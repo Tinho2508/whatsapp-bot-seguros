@@ -26,3 +26,14 @@ CHROME_USER_DIR = "chrome_profile"
 # Caminho do executável do Tesseract OCR (Windows)
 # Deixe como None se o tesseract estiver no PATH do sistema
 TESSERACT_CMD = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+# ── Integração com CRM ──────────────────────────────
+# modo: "csv" (salva arquivo), "api" (envia para API), "automacao" (via Selenium)
+CRM_CONFIG = {
+    "modo": "csv",
+    "api_url": "",          # Ex: "https://jafcrm.com.br/api"
+    "api_token": "",        # Token de acesso
+    "crm_url": "",          # URL do CRM (para automação)
+    "crm_usuario": "",
+    "crm_senha": "",
+}
