@@ -28,8 +28,22 @@ CHROME_USER_DIR = "chrome_profile"
 TESSERACT_CMD = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # ── Integração com CRM ──────────────────────────────
-# modo: "csv" (salva arquivo), "api" (envia para API), "automacao" (via Selenium)
+# A chave supabase_service_key é lida do arquivo .env (nunca commitado)
+# Crie um arquivo .env na raiz do projeto com:
+#   SUPABASE_SERVICE_KEY=sua_chave_aqui
+import os
+from pathlib import Path
+
+_env_path = Path(__file__).resolve().parent.parent / ".env"
+if _env_path.exists():
+    with open(_env_path, encoding="utf-8") as _f:
+        for _linha in _f:
+            _linha = _linha.strip()
+            if _linha and not _linha.startswith("#") and "=" in _linha:
+                _k, _v = _linha.split("=", 1)
+                os.environ.setdefault(_k.strip(), _v.strip().strip("\"'"))
+
 CRM_CONFIG = {
     "modo": "supabase",
-    "supabase_service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10YWhlYnR1YnVieWxubWF1enNhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjgxNzc2NCwiZXhwIjoyMDkyMzkzNzY0fQ.dBGUOKySuq5SIKO47WMaVrV3hGLMOjbF87Eqs9NQ1Mc",
+    "supabase_service_key": os.environ.get("SUPABASE_SERVICE_KEY", ""),
 }
