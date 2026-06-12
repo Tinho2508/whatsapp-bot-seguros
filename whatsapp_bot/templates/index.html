@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WhatsApp Bot - Seguros</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0f1117; --surface: #1a1d27; --surface2: #232736;
+  --border: #2a2e3d; --text: #e1e4ed; --text2: #8b8fa3;
+  --primary: #6366f1; --primary-hover: #5457e5; --primary-light: rgba(99,102,241,.12);
+  --green: #22c55e; --red: #ef4444; --orange: #f59e0b; --blue: #3b82f6;
+  --radius: 10px; --shadow: 0 4px 24px rgba(0,0,0,.3);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+/* Sidebar */
+.sidebar {
+  width: 220px; background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 20px 16px; flex-shrink: 0;
+}
+.sidebar h1 { font-size: 18px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.sidebar .sub { font-size: 12px; color: var(--text2); margin-bottom: 24px; }
+.sidebar nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.sidebar nav button {
+  background: none; border: none; color: var(--text2); font-size: 14px; font-family: inherit;
+  padding: 10px 12px; border-radius: 8px; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 10px;
+  transition: all .15s;
+}
+.sidebar nav button:hover { background: var(--surface2); color: var(--text); }
+.sidebar nav button.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+.sidebar .status-dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px;
+}
+.sidebar .status-dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.sidebar .status-dot.red { background: var(--red); box-shadow: 0 0 6px var(--red); }
+.sidebar .status-dot.orange { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+
+/* Main */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Top bar */
+.topbar {
+  display: flex; align-items: center; gap: 12px; padding: 12px 24px;
+  border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0;
+}
+.topbar .btn {
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: inherit;
+  font-size: 13px; padding: 7px 16px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+  transition: all .15s;
+}
+.topbar .btn:hover { background: var(--primary); border-color: var(--primary); }
+.topbar .btn.primary { background: var(--primary); border-color: var(--primary); font-weight: 600; }
+.topbar .btn.primary:hover { background: var(--primary-hover); }
+.topbar .btn.green { background: var(--green); border-color: var(--green); color: #000; font-weight: 600; }
+.topbar .btn.green:hover { opacity: .9; }
+.topbar .btn:disabled { opacity: .4; cursor: not-allowed; }
+.topbar .btn.danger { background: var(--red); border-color: var(--red); color: #fff; }
+.topbar .badge {
+  background: var(--primary-light); color: var(--primary); padding: 2px 10px;
+  border-radius: 20px; font-size: 13px; font-weight: 600;
+}
+
+/* Content */
+.content { flex: 1; padding: 20px 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+
+/* Cards */
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px 20px; box-shadow: var(--shadow);
+}
+.card h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.card h3 .count { font-weight: 400; color: var(--text2); font-size: 13px; }
+
+/* Stats row */
+.stats { display: flex; gap: 12px; }
+.stat {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 18px; flex: 1; display: flex; flex-direction: column;
+}
+.stat .value { font-size: 24px; font-weight: 700; }
+.stat .label { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.stat .value.green { color: var(--green); }
+.stat .value.orange { color: var(--orange); }
+.stat .value.blue { color: var(--blue); }
+
+/* Table */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--text2); font-weight: 600; }
+tr:hover td { background: var(--surface2); }
+td input[type=checkbox] { accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; }
+td .tag {
+  display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500;
+}
+td .tag.auto { background: rgba(59,130,246,.15); color: #60a5fa; }
+td .tag.residencial { background: rgba(34,197,94,.15); color: #4ade80; }
+td .tag.vida { background: rgba(245,158,11,.15); color: #fbbf24; }
+td .tag.saude { background: rgba(239,68,68,.15); color: #f87171; }
+td .tag.indefinido { background: rgba(139,143,163,.15); color: var(--text2); }
+
+/* Message editor */
+.msg-area { display: flex; flex-direction: column; gap: 12px; }
+.msg-area textarea {
+  width: 100%; min-height: 100px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px; color: var(--text); font-family: inherit; font-size: 13px;
+  resize: vertical; outline: none; transition: border .15s;
+}
+.msg-area textarea:focus { border-color: var(--primary); }
+.msg-area .msg-actions { display: flex; gap: 8px; }
+.msg-area .msg-actions button {
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  font-family: inherit; font-size: 12px; padding: 6px 14px; border-radius: 6px; cursor: pointer;
+  transition: all .15s;
+}
+.msg-area .msg-actions button:hover { background: var(--primary); border-color: var(--primary); }
+
+/* Progress */
+.progress-wrap { margin-top: 4px; }
+.progress-bar {
+  width: 100%; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden;
+}
+.progress-bar .fill {
+  height: 100%; background: linear-gradient(90deg, var(--primary), var(--blue));
+  border-radius: 3px; transition: width .3s ease; width: 0%;
+}
+.progress-text { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+/* Log */
+.log-box {
+  background: #0a0b10; border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px; max-height: 120px; overflow-y: auto; font-family: 'Consolas', monospace; font-size: 12px; line-height: 1.6;
+}
+.log-box div { color: var(--text2); }
+.log-box div.info { color: var(--blue); }
+.log-box div.success { color: var(--green); }
+.log-box div.error { color: var(--red); }
+.log-box div.warning { color: var(--orange); }
+
+/* File input hidden */
+#fileInput { display: none; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 20px;
+  box-shadow: var(--shadow); z-index: 999; font-size: 13px; max-width: 380px;
+  animation: slideIn .3s ease; display: none;
+}
+.toast.show { display: block; }
+.toast.error { border-color: var(--red); }
+.toast.success { border-color: var(--green); }
+@keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* Scroll */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.empty { text-align: center; padding: 40px; color: var(--text2); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <h1>🤖 Bot Seguros</h1>
+  <div class="sub">Disparo de mensagens</div>
+  <nav>
+    <button class="active" data-tab="clientes">📋 Clientes</button>
+    <button data-tab="mensagem">✉️ Mensagem</button>
+    <button data-tab="log">📋 Log</button>
+  </nav>
+  <div style="font-size:12px;color:var(--text2);border-top:1px solid var(--border);padding-top:12px;margin-top:auto;">
+    <div><span class="status-dot red" id="statusDot"></span><span id="statusLabel">Desconectado</span></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <button class="btn" id="btnImport">📄 Importar CSV</button>
+    <button class="btn" id="btnOcr">📸 Capturar Tela</button>
+    <button class="btn primary" id="btnConnect">🔗 Conectar WhatsApp</button>
+    <button class="btn green" id="btnSend" disabled>🚀 Enviar Selecionados</button>
+    <button class="btn danger" id="btnStop" style="display:none">⏹ Parar</button>
+    <span class="badge" id="clientCount">0 clientes</span>
+    <div style="flex:1"></div>
+    <label class="btn" style="cursor:pointer;font-size:12px">
+      ☐ Marcar Todos <input type="checkbox" id="checkAll" style="margin-left:6px;accent-color:var(--primary)">
+    </label>
+  </div>
+
+  <div class="content">
+    <!-- Stats -->
+    <div class="stats" id="statsRow">
+      <div class="stat"><div class="value blue" id="statImport">0</div><div class="label">Importados</div></div>
+      <div class="stat"><div class="value orange" id="statSelected">0</div><div class="label">Selecionados</div></div>
+      <div class="stat"><div class="value green" id="statSent">0</div><div class="label">Enviados</div></div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="card" id="tabClientes">
+      <h3>📋 Clientes <span class="count" id="tableCount"></span></h3>
+      <div class="table-wrap">
+        <table><thead><tr>
+          <th style="width:30px"></th>
+          <th>Nome</th>
+          <th>Telefone</th>
+          <th>Tipo</th>
+          <th>Vencimento</th>
+          <th>Valor</th>
+        </tr></thead><tbody id="tbody"></tbody></table>
+      </div>
+      <div class="empty" id="emptyState">Nenhum cliente carregado.<br>Importe um arquivo CSV/Excel ou capture a tela.</div>
+    </div>
+
+    <!-- Mensagem -->
+    <div class="card" id="tabMensagem" style="display:none">
+      <h3>✉️ Mensagem <span class="count" id="msgCliente"></span></h3>
+      <div class="msg-area">
+        <textarea id="msgText" placeholder="Selecione um cliente na tabela para editar a mensagem..."></textarea>
+        <div class="msg-actions">
+          <button id="btnSaveMsg">💾 Salvar Mensagem</button>
+          <button id="btnRegenMsg">🔄 Regenerar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progresso -->
+    <div class="card">
+      <h3>🚀 Envio <span class="count" id="progressLabel"></span></h3>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
+        <div class="progress-text" id="progressText">Aguardando...</div>
+      </div>
+    </div>
+
+    <!-- Log -->
+    <div class="card" id="tabLog">
+      <h3>📋 Log</h3>
+      <div class="log-box" id="logBox"></div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".csv,.xls,.xlsx">
+
+<script>
+// ── State ──────────────────────────────
+let clientes = [];
+let selectedIdx = null;
+let sendPoll = null;
+
+// ── Tabs ───────────────────────────────
+document.querySelectorAll('.sidebar nav button').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.sidebar nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.content > .card, .content > .stats').forEach(el => el.style.display = '');
+    document.getElementById('tabMensagem').style.display = btn.dataset.tab === 'mensagem' ? '' : 'none';
+    if (btn.dataset.tab === 'log') document.getElementById('tabLog').style.display = '';
+  };
+});
+
+// ── Toast ──────────────────────────────
+function toast(msg, type = '') {
+  const el = document.getElementById('toast') || (() => {
+    const t = document.createElement('div'); t.id = 'toast'; t.className = 'toast';
+    document.body.appendChild(t); return t;
+  })();
+  el.textContent = msg; el.className = 'toast show ' + type;
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// ── Log ────────────────────────────────
+function addLog(msg, type = 'info') {
+  const box = document.getElementById('logBox');
+  const t = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const div = document.createElement('div'); div.className = type;
+  div.textContent = `[${t}] ${msg}`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+// ── Load clients ───────────────────────
+async function loadClientes() {
+  const r = await fetch('/api/clientes');
+  clientes = await r.json();
+  renderTabela();
+  updateStats();
+}
+
+function renderTabela() {
+  const tbody = document.getElementById('tbody');
+  const empty = document.getElementById('emptyState');
+  tbody.innerHTML = '';
+  if (clientes.length === 0) { empty.style.display = 'block'; document.getElementById('tableCount').textContent = ''; return; }
+  empty.style.display = 'none';
+  document.getElementById('tableCount').textContent = `(${clientes.length})`;
+
+  clientes.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    const tipoClass = (c.tipo_seguro || 'indefinido').toLowerCase();
+    tr.innerHTML = `
+      <td><input type="checkbox" class="sel" data-idx="${c.idx}" checked></td>
+      <td>${escapeHtml(c.nome)}</td>
+      <td>${escapeHtml(c.telefone)}</td>
+      <td><span class="tag ${tipoClass}">${escapeHtml(c.tipo_seguro || 'Indefinido')}</span></td>
+      <td>${escapeHtml(c.vencimento || '-')}</td>
+      <td>${escapeHtml(c.valor || '-')}</td>
+    `;
+    tr.querySelector('.sel').onchange = updateStats;
+    tr.onclick = (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      selecionarCliente(c.idx);
+    };
+    tbody.appendChild(tr);
+  });
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+// ── Select client ─────────────────────
+function selecionarCliente(idx) {
+  selectedIdx = idx;
+  const c = clientes.find(x => x.idx === idx);
+  if (!c) return;
+  document.getElementById('msgText').value = c.mensagem || '';
+  document.getElementById('msgCliente').textContent = `— ${c.nome} (${c.tipo_seguro || 'N/A'})`;
+  document.querySelector('[data-tab="mensagem"]').click();
+}
+
+// ── Stats ──────────────────────────────
+function updateStats() {
+  const checks = document.querySelectorAll('.sel:checked');
+  document.getElementById('statImport').textContent = clientes.length;
+  document.getElementById('statSelected').textContent = checks.length;
+  document.getElementById('btnSend').disabled = checks.length === 0;
+  document.getElementById('clientCount').textContent = `${clientes.length} clientes`;
+}
+
+// ── Check all ──────────────────────────
+document.getElementById('checkAll').onchange = function() {
+  document.querySelectorAll('.sel').forEach(c => c.checked = this.checked);
+  updateStats();
+};
+
+// ── Import file ────────────────────────
+document.getElementById('btnImport').onclick = () => document.getElementById('fileInput').click();
+document.getElementById('fileInput').onchange = async function() {
+  const file = this.files[0];
+  if (!file) return;
+  const fd = new FormData(); fd.append('file', file);
+  addLog(`Importando ${file.name}...`, 'info');
+  try {
+    const r = await fetch('/api/importar/arquivo', { method: 'POST', body: fd });
+    const data = await r.json();
+    if (!r.ok) { toast(data.error || 'Erro na importação', 'error'); addLog(`Erro: ${data.error}`, 'error'); return; }
+    toast(`${data.total} clientes importados!`, 'success');
+    addLog(`${data.total} clientes importados de ${file.name}`, 'success');
+    await loadClientes();
+  } catch(e) { toast('Erro ao enviar arquivo', 'error'); addLog(`Erro: ${e.message}`, 'error'); }
+  this.value = '';
+};
+
+// ── OCR ─────────────────────────────────
+document.getElementById('btnOcr').onclick = async () => {
+  addLog('OCR: abrindo captura de tela...', 'info');
+  toast('Posicione a planilha na tela e selecione a região no overlay...');
+  try {
+    const r = await fetch('/api/importar/ocr');
+    const data = await r.json();
+    if (!r.ok) { toast(data.error || 'Erro no OCR', 'error'); addLog(`OCR erro: ${data.error}`, 'error'); return; }
+    toast(`${data.total} clientes identificados!`, 'success');
+    addLog(`${data.total} clientes importados via OCR`, 'success');
+    await loadClientes();
+  } catch(e) { toast('Erro no OCR', 'error'); addLog(`OCR erro: ${e.message}`, 'error'); }
+};
+
+// ── Connect WhatsApp ───────────────────
+document.getElementById('btnConnect').onclick = async () => {
+  const btn = document.getElementById('btnConnect');
+  btn.disabled = true; btn.textContent = '⏳ Conectando...';
+  addLog('Conectando ao WhatsApp Web...', 'info');
+  try {
+    const r = await fetch('/api/whatsapp/conectar', { method: 'POST' });
+    const data = await r.json();
+    if (!r.ok) { toast(data.error || 'Falha na conexão', 'error'); addLog(`Erro: ${data.error}`, 'error'); return; }
+    toast('WhatsApp conectado!', 'success');
+    addLog('WhatsApp Web conectado!', 'success');
+    atualizarStatus(true);
+  } catch(e) { toast('Erro na conexão', 'error'); addLog(`Erro: ${e.message}`, 'error'); }
+  btn.disabled = false; btn.textContent = '🔗 Conectar WhatsApp';
+};
+
+// ── Status ─────────────────────────────
+async function atualizarStatus(connected) {
+  const dot = document.getElementById('statusDot');
+  const label = document.getElementById('statusLabel');
+  dot.className = 'status-dot ' + (connected ? 'green' : 'red');
+  label.textContent = connected ? 'Conectado' : 'Desconectado';
+  if (!connected) {
+    try {
+      const r = await fetch('/api/whatsapp/status');
+      const data = await r.json();
+      if (data.conectado) {
+        dot.className = 'status-dot green'; label.textContent = 'Conectado';
+      }
+    } catch(e) {}
+  }
+}
+atualizarStatus(false);
+setInterval(() => atualizarStatus(false), 10000);
+
+// ── Send ───────────────────────────────
+document.getElementById('btnSend').onclick = async () => {
+  const indices = Array.from(document.querySelectorAll('.sel:checked')).map(c => parseInt(c.dataset.idx));
+  if (indices.length === 0) return toast('Selecione ao menos um cliente', 'error');
+  addLog(`Iniciando envio para ${indices.length} cliente(s)...`, 'info');
+  try {
+    const r = await fetch('/api/enviar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ indices })
+    });
+    const data = await r.json();
+    if (!r.ok) { toast(data.error || 'Erro ao iniciar envio', 'error'); return; }
+    document.getElementById('btnSend').style.display = 'none';
+    document.getElementById('btnStop').style.display = 'inline-block';
+    sendPoll = setInterval(pollProgress, 1000);
+  } catch(e) { toast('Erro ao iniciar envio', 'error'); }
+};
+
+document.getElementById('btnStop').onclick = async () => {
+  await fetch('/api/enviar/parar', { method: 'POST' });
+  addLog('Envio interrompido pelo usuário.', 'warning');
+  clearInterval(sendPoll); sendPoll = null;
+  document.getElementById('btnStop').style.display = 'none';
+  document.getElementById('btnSend').style.display = 'inline-block';
+};
+
+async function pollProgress() {
+  try {
+    const r = await fetch('/api/enviar/progresso');
+    const p = await r.json();
+    const pct = p.total > 0 ? (p.current / p.total * 100) : 0;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').textContent = p.status || '';
+    document.getElementById('progressLabel').textContent = `— ${p.current}/${p.total}`;
+    if (p.done || p.status === 'parado') {
+      clearInterval(sendPoll); sendPoll = null;
+      document.getElementById('btnStop').style.display = 'none';
+      document.getElementById('btnSend').style.display = 'inline-block';
+      document.getElementById('statSent').textContent = p.current;
+      if (p.done) toast('Envio concluído!', 'success');
+    }
+  } catch(e) {}
+}
+
+// ── Save message ───────────────────────
+document.getElementById('btnSaveMsg').onclick = async () => {
+  if (selectedIdx === null) return toast('Selecione um cliente na tabela', 'error');
+  const msg = document.getElementById('msgText').value;
+  try {
+    const r = await fetch(`/api/cliente/${selectedIdx}/mensagem`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mensagem: msg })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error);
+    const c = clientes.find(x => x.idx === selectedIdx);
+    if (c) c.mensagem = msg;
+    toast('Mensagem salva!', 'success');
+    addLog(`Mensagem de ${c ? c.nome : 'cliente'} atualizada`, 'info');
+  } catch(e) { toast('Erro ao salvar', 'error'); }
+};
+
+document.getElementById('btnRegenMsg').onclick = () => {
+  if (selectedIdx === null) return toast('Selecione um cliente', 'error');
+  const c = clientes.find(x => x.idx === selectedIdx);
+  if (c) {
+    const r = fetch(`/api/cliente/${selectedIdx}/mensagem`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mensagem: '' })
+    }).then(() => loadClientes());
+    document.getElementById('msgText').value = c.mensagem || '';
+  }
+};
+
+// ── Init ───────────────────────────────
+loadClientes();
+</script>
+</body>
+</html>
