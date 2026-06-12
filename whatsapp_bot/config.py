@@ -30,10 +30,6 @@ TESSERACT_CMD = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 # ── Integração com CRM ──────────────────────────────
 # modo: "csv" (salva arquivo), "api" (envia para API), "automacao" (via Selenium)
 CRM_CONFIG = {
-    "modo": "csv",
-    "api_url": "",          # Ex: "https://jafcrm.com.br/api"
-    "api_token": "",        # Token de acesso
-    "crm_url": "",          # URL do CRM (para automação)
-    "crm_usuario": "",
-    "crm_senha": "",
+    "modo": "supabase",
+    "supabase_service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10YWhlYnR1YnVieWxubWF1enNhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjgxNzc2NCwiZXhwIjoyMDkyMzkzNzY0fQ.dBGUOKySuq5SIKO47WMaVrV3hGLMOjbF87Eqs9NQ1Mc",
 }
